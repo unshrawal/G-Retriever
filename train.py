@@ -19,7 +19,15 @@ from src.utils.lr_schedule import adjust_learning_rate
 
 
 def main(args):
-
+    args.batch_size = 2
+    args.eval_batch_size = 5
+    args.gnn_model_name = None
+    #args.dataset = 'anomaly_graphs_baseline'
+    #args.model_name = 'pt_llm'
+    #args.llm_frozen = False
+    #args.dataset = 'anomaly_graphs_baseline'
+    #args.model_name = 'llm'
+    #args.llm_frozen = False
     # Step 1: Set up wandb
     seed = args.seed
     wandb.init(project=f"{args.project}",
@@ -32,18 +40,21 @@ def main(args):
     dataset = load_dataset[args.dataset]()
     idx_split = dataset.get_idx_split()
 
+    dataset_ood = load_dataset[args.dataset](use_ood=True)
+
     # Step 2: Build Node Classification Dataset
     train_dataset = [dataset[i] for i in idx_split['train']]
     val_dataset = [dataset[i] for i in idx_split['val']]
     test_dataset = [dataset[i] for i in idx_split['test']]
+    ood_dataset = [dataset_ood[i] for i in range(0, 200)]
 
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, drop_last=True, pin_memory=True, shuffle=True, collate_fn=collate_fn)
     val_loader = DataLoader(val_dataset, batch_size=args.batch_size, drop_last=False, pin_memory=True, shuffle=False, collate_fn=collate_fn)
     test_loader = DataLoader(test_dataset, batch_size=args.eval_batch_size, drop_last=False, pin_memory=True, shuffle=False, collate_fn=collate_fn)
-
+    ood_loader = DataLoader(ood_dataset, batch_size=args.eval_batch_size, drop_last=False, pin_memory=True, shuffle=False, collate_fn=collate_fn)
     # Step 3: Build Model
     args.llm_model_path = llama_model_path[args.llm_model_name]
-    model = load_model[args.model_name](graph_type=dataset.graph_type, args=args, init_prompt=dataset.prompt)
+    model = load_model[args.model_name](graph_type=dataset.graph_type, args=args, init_prompt=dataset.prompt).cuda()
 
     # Step 4 Set Optimizer
     params = [p for _, p in model.named_parameters() if p.requires_grad]
@@ -133,6 +144,23 @@ def main(args):
 
     # Step 6. Post-processing & compute metrics
     acc = eval_funcs[args.dataset](path)
+    print(f'Test Acc {acc}')
+    wandb.log({'Test Acc': acc})
+
+    model = _reload_best_model(model, args)
+    model.eval()
+    progress_bar_test = tqdm(range(len(ood_loader)))
+    with open("output/anomaly_graphs/ood.csv", "w") as f:
+        for step, batch in enumerate(ood_loader):
+            with torch.no_grad():
+                output = model.inference(batch)
+                df = pd.DataFrame(output)
+                for _, row in df.iterrows():
+                    f.write(json.dumps(dict(row)) + "\n")
+            progress_bar_test.update(1)
+
+    # Step 6. Post-processing & compute metrics
+    acc = eval_funcs[args.dataset]("output/anomaly_graphs/ood.csv")
     print(f'Test Acc {acc}')
     wandb.log({'Test Acc': acc})
 

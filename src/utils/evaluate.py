@@ -2,7 +2,29 @@ import json
 import pandas as pd
 import re
 import string
+import Levenshtein
 
+def text_similarity_evaluation(path):
+    df = pd.read_json(path, lines=True)
+    tp, fp, fn = 0, 0, 0
+    threshold = 0.8
+    for label, pred in zip(df["label"], df["pred"]):
+        similarity_score = 1 - Levenshtein.distance(label, pred) / max(len(label), len(pred))
+        if similarity_score >= threshold:
+            tp += 1
+        else:
+            fp += 1
+
+    fn = len(df["label"]) - tp
+
+    precision = tp / (tp + fp)
+    recall = tp / (tp + fn)
+    if precision + recall == 0:
+        return 0
+    f1_score = 2 * (precision * recall) / (precision + recall)
+
+    #return precision, recall, f1_score
+    return f1_score
 
 def get_accuracy_gqa(path):
     df = pd.read_json(path, lines=True)
@@ -12,7 +34,6 @@ def get_accuracy_gqa(path):
         if label in pred:
             correct += 1
     return correct / len(df)
-
 
 def get_accuracy_expla_graphs(path):
     df = pd.read_json(path, lines=True)
@@ -117,6 +138,8 @@ def get_accuracy_webqsp(path):
 
 
 eval_funcs = {
+    "anomaly_graphs": text_similarity_evaluation,
+    "anomaly_graphs_baseline": text_similarity_evaluation,
     "expla_graphs": get_accuracy_expla_graphs,
     "scene_graphs": get_accuracy_gqa,
     "scene_graphs_baseline": get_accuracy_gqa,

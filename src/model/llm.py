@@ -5,15 +5,15 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import (
     LoraConfig,
     get_peft_model,
-    prepare_model_for_int8_training,
+    prepare_model_for_kbit_training,
 )
-
+#import os
 BOS = '<s>[INST]'
 EOS_USER = '[/INST]'
 EOS = '</s>'
 
 IGNORE_INDEX = -100
-
+#os.environ['CUDA_VISIBLE_DEVICES'] ='0'
 
 class LLM(torch.nn.Module):
 
@@ -28,7 +28,7 @@ class LLM(torch.nn.Module):
 
         print('Loading LLAMA')
         kwargs = {
-            "max_memory": {0: '80GiB', 1: '80GiB'},
+            "max_memory": {0: '128GiB'},
             "device_map": "auto",
             "revision": "main",
         }
@@ -38,7 +38,7 @@ class LLM(torch.nn.Module):
 
         model = AutoModelForCausalLM.from_pretrained(
             args.llm_model_path,
-            torch_dtype=torch.float16,
+            torch_dtype=torch.bfloat16,
             low_cpu_mem_usage=True,
             **kwargs
         )
@@ -49,7 +49,7 @@ class LLM(torch.nn.Module):
                 param.requires_grad = False
         else:
             print("Training LLAMA with LORA!")
-            model = prepare_model_for_int8_training(model)
+            model = prepare_model_for_kbit_training(model)
 
             lora_r: int = 8
             lora_alpha: int = 16
@@ -67,7 +67,6 @@ class LLM(torch.nn.Module):
                 task_type="CAUSAL_LM",
             )
             model = get_peft_model(model, config)
-
         self.model = model
         print('Finish loading LLAMA!')
 
@@ -96,8 +95,10 @@ class LLM(torch.nn.Module):
         # encode special tokens
         eos_tokens = self.tokenizer(EOS, add_special_tokens=False)
         eos_user_tokens = self.tokenizer(EOS_USER, add_special_tokens=False)
-        bos_embeds = self.word_embedding(self.tokenizer(BOS, add_special_tokens=False, return_tensors='pt').input_ids[0])
-        pad_embeds = self.word_embedding(torch.tensor(self.tokenizer.pad_token_id)).unsqueeze(0)
+        #bos_embeds = self.word_embedding(self.tokenizer(BOS, add_special_tokens=False, return_tensors='pt').input_ids[0])
+        #pad_embeds = self.word_embedding(torch.tensor(self.tokenizer.pad_token_id)).unsqueeze(0)
+        bos_embeds = self.word_embedding(self.tokenizer(BOS, add_special_tokens=False, return_tensors='pt').input_ids.to(self.model.device)[0])
+        pad_embeds = self.word_embedding(torch.tensor(self.tokenizer.pad_token_id).to(self.model.device)).unsqueeze(0)
 
         batch_size = len(samples['id'])
         batch_inputs_embeds = []
@@ -145,8 +146,10 @@ class LLM(torch.nn.Module):
 
         # encode special tokens
         eos_user_tokens = self.tokenizer(EOS_USER, add_special_tokens=False)
-        bos_embeds = self.word_embedding(self.tokenizer(BOS, add_special_tokens=False, return_tensors='pt').input_ids[0])
-        pad_embeds = self.word_embedding(torch.tensor(self.tokenizer.pad_token_id)).unsqueeze(0)
+        #bos_embeds = self.word_embedding(self.tokenizer(BOS, add_special_tokens=False, return_tensors='pt').input_ids.to(self.model.device)[0])
+        #pad_embeds = self.word_embedding(torch.tensor(self.tokenizer.pad_token_id).to(self.model.device)).unsqueeze(0)
+        bos_embeds = self.word_embedding(self.tokenizer(BOS, add_special_tokens=False, return_tensors='pt').input_ids.to(self.model.device)[0])
+        pad_embeds = self.word_embedding(torch.tensor(self.tokenizer.pad_token_id).to(self.model.device)).unsqueeze(0)
 
         batch_size = len(samples['id'])
         batch_inputs_embeds = []

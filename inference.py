@@ -17,6 +17,12 @@ from src.utils.collate import collate_fn
 def main(args):
 
     # Step 1: Set up wandb
+    args.dataset = "anomaly_graphs"
+    args.model_name = "inference_llm"
+    args.llm_model_name = "13b_chat"
+    args.batch_size = 1
+    args.eval_batch_size = 1
+
     seed = args.seed
     wandb.init(project=f"{args.project}",
                name=f"{args.dataset}_{args.model_name}_seed{seed}",

@@ -64,3 +64,17 @@ output/
 wandb/
 
 .vscode/
+
+dataset/anomaly_graphs/cached_desc/
+dataset/anomaly_graphs/cached_graphs/
+dataset/anomaly_graphs/cached_ood_desc/
+dataset/anomaly_graphs/cached_ood_graphs/
+dataset/anomaly_graphs/edges/
+dataset/anomaly_graphs/edges_ood/
+dataset/anomaly_graphs/graphs/
+dataset/anomaly_graphs/graphs_ood/
+dataset/anomaly_graphs/nodes/
+dataset/anomaly_graphs/nodes_ood/
+dataset/anomaly_graphs/split/
+
+dataset/scene_graphs/
