@@ -10,7 +10,7 @@ We attempt to adapt G-Retriever, a flexible question-answering framework targeti
 **G-Retriever** integrates the strengths of Graph Neural Networks (GNNs), Large Language Models (LLMs), and Retrieval-Augmented Generation (RAG), and can be fine-tuned to enhance graph understanding via soft prompting.
 <img src="figs/overview.svg">
 
-Here are some resources to learn more about the dataset we have constructed, how we construct it, and it's results.
+Here are some resources to learn more about the dataset we have constructed, how we construct it, and it's results.  
 ["<u>Medium Article</u>"](https://medium.com/@unshrawal/g-retriever-afor-anomaly-explanation-84edf2568d26)  
 ["<u>Slides</u>"](https://docs.google.com/presentation/d/1oALqADANtPXHAOuWVTmgTAYSaUIQ3BuR21_2FFA2BJU/edit?usp=sharing)
 
