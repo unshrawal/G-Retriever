@@ -4,11 +4,15 @@
 
 This repository contains the source code for the paper ["<u>G-Retriever: Retrieval-Augmented Generation for Textual Graph Understanding and Question Answering</u>"](https://arxiv.org/abs/2402.07630).
 
-We introduce **G-Retriever**, a flexible question-answering framework targeting real-world textual graphs, applicable to multiple applications including scene graph understanding, common sense reasoning, and knowledge graph reasoning.
+We attempt to adapt G-Retriever, a flexible question-answering framework targeting real-world textual graphs, applicable to multiple applications including scene graph understanding, common sense reasoning, and knowledge graph reasoning, for the purposes of anomaly explanation.
 <img src="figs/chat.svg">
 
 **G-Retriever** integrates the strengths of Graph Neural Networks (GNNs), Large Language Models (LLMs), and Retrieval-Augmented Generation (RAG), and can be fine-tuned to enhance graph understanding via soft prompting.
 <img src="figs/overview.svg">
+
+Here are some resources to learn more about the dataset we have constructed, how we construct it, and it's results.
+[![Medium Article](https://medium.com/@unshrawal/g-retriever-afor-anomaly-explanation-84edf2568d26)
+[![Slides](https://docs.google.com/presentation/d/1oALqADANtPXHAOuWVTmgTAYSaUIQ3BuR21_2FFA2BJU/edit?usp=sharing)
 
 
 ## Citation
